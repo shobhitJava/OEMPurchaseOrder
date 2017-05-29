@@ -29,11 +29,11 @@ type SUBO struct {
 }
 
 type ORDERS_LIST struct {
-	orderIds []string `json:"order_Ids"`
+	OrderIds []string `json:"order_Ids"`
 }
 
 type SUB_ORDERS_LIST struct {
-	suboOderId []string `json:"order_Ids"`
+	SubOderId []string `json:"subOderId"`
 }
 
 type SimpleChaincode struct {
@@ -177,7 +177,7 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 	var subOrderIds SUB_ORDERS_LIST
 	json.Unmarshal(subOrderBytes, &subOrderIds)
 
-	for _, sub := range subOrderIds.suboOderId {
+	for _, sub := range subOrderIds.SubOderId {
 
 		fmt.Println("Inside for loop for getting suborders. SUBORDER Id is  ", sub)
 		args[0] = sub
@@ -280,8 +280,6 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("OEM", row)
 
-	stub.PutState(col1Val, []byte(""))
-
 	if err != nil {
 		return nil, fmt.Errorf("insertTableOne operation failed. %s", err)
 		panic(err)
@@ -299,7 +297,7 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 		return nil, errors.New("error unmarshalling new Property Address")
 	}
 
-	newOrderId.orderIds = append(newOrderId.orderIds, row.Columns[0].GetString_())
+	newOrderId.OrderIds = append(newOrderId.OrderIds, row.Columns[0].GetString_())
 	bytes, err = json.Marshal(newOrderId)
 	if err != nil {
 
@@ -360,8 +358,6 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 
 	ok, err := stub.InsertRow("TIER1", row)
 
-	fmt.Println("OK ", ok)
-
 	rowString1 := fmt.Sprintf("%s", row)
 
 	fmt.Println("SubOrderRowInserted ", rowString1)
@@ -375,36 +371,26 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 		return []byte("Row with given key" + col1Val + " already exists"), errors.New("insertTableOne operation failed. Row with given key already exists")
 	}
 
-	newSubOrderId := SUB_ORDERS_LIST{}
 	var getBytes []byte
-	var bytes []byte
-
 	getBytes, err = stub.GetState(col1Val)
 
 	fmt.Println("getBytes " + string(getBytes))
 	fmt.Println(err)
 
-	if err != nil {
-		return nil, errors.New("error  in get state")
-	}
+	newSubOrderId := SUB_ORDERS_LIST{}
+	var subOrderIdBytes []byte
 
-	if len(getBytes) != 0 {
-		err = json.Unmarshal(getBytes, &newSubOrderId)
-		fmt.Println("inside if condition that is length of bytes got != 0")
-	}
+	json.Unmarshal(getBytes, &newSubOrderId)
 
-	fmt.Println("newSubOrderId.suboOderId ", newSubOrderId.suboOderId)
-	fmt.Println("getBytes " + string(getBytes))
-	fmt.Println("err ", err)
+	fmt.Println("newSubOrderId", newSubOrderId)
 
-	newSubOrderId.suboOderId = append(newSubOrderId.suboOderId, strCurrentId)
+	newSubOrderId.SubOderId = append(newSubOrderId.SubOderId, strCurrentId)
+	subOrderIdBytes, err = json.Marshal(newSubOrderId)
+	stub.PutState(col1Val, subOrderIdBytes)
 
-	bytes, err = json.Marshal(newSubOrderId)
 	if err != nil {
 		return nil, errors.New("error marshalling new subOrderIDS")
 	}
-
-	err = stub.PutState(col1Val, bytes)
 
 	return nil, nil
 }
