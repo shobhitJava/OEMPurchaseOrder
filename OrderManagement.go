@@ -152,9 +152,8 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return fetchAllSubOrdersbyOrderId(stub, args)
 	}
 	if function == "fetchSubOrderBySubOrderId" {
-		var sub string
 
-		return fetchSubOrderBySubOrderId(stub, args, sub)
+		return fetchSubOrderBySubOrderId(stub, args)
 	}
 	return nil, nil
 
@@ -181,8 +180,9 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 	for _, sub := range subOrderIds.suboOderId {
 
 		fmt.Println("Inside for loop for getting suborders. SUBORDER Id is  ", sub)
+		args[0] = sub
 
-		sbytes, err = fetchSubOrderBySubOrderId(stub, args, sub)
+		sbytes, err = fetchSubOrderBySubOrderId(stub, args)
 
 		err = json.Unmarshal(sbytes, &s)
 
@@ -199,20 +199,15 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 
 }
 
-func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string, sub string) ([]byte, error) {
+func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var columns []shim.Column
 	var err error
 	var row shim.Row
 	var jsonRows []byte
 
-	if len(sub) != 0 {
-		col0 := shim.Column{Value: &shim.Column_String_{String_: sub}}
-		columns = append(columns, col0)
-	} else {
-		col0 := shim.Column{Value: &shim.Column_String_{String_: args[0]}}
-		columns = append(columns, col0)
-	}
+	col0 := shim.Column{Value: &shim.Column_String_{String_: args[0]}}
+	columns = append(columns, col0)
 
 	row, err = stub.GetRow("TIER1", columns)
 
