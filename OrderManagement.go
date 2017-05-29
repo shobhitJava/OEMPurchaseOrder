@@ -100,7 +100,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	err = stub.CreateTable("TIER1", []*shim.ColumnDefinition{
-		&shim.ColumnDefinition{"subOrderId", shim.ColumnDefinition_STRING, true},
+		&shim.ColumnDefinition{"SubOrderId", shim.ColumnDefinition_STRING, true},
 		&shim.ColumnDefinition{"OrderId", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Order_Desc", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Order_Quantity", shim.ColumnDefinition_STRING, false},
@@ -329,6 +329,11 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col6Val := "Sub Order created. Pending with Tier2"
 	col7Val := args[3]
 
+	fmt.Println(args[0])
+	fmt.Println(args[1])
+	fmt.Println(args[2])
+	fmt.Println(args[3])
+
 	var columns []*shim.Column
 
 	col0 := shim.Column{Value: &shim.Column_String_{String_: col0Val}}
@@ -350,7 +355,12 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	columns = append(columns, &col7)
 
 	row := shim.Row{Columns: columns}
+
 	ok, err := stub.InsertRow("TIER1", row)
+
+	rowString1 := fmt.Sprintf("%s", row)
+
+	fmt.Println("SubOrderRowInserted ", rowString1)
 
 	if err != nil {
 		return nil, fmt.Errorf("insertTableOne operation failed. %s", err)
