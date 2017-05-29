@@ -280,6 +280,8 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("OEM", row)
 
+	stub.PutState(col1Val, []byte(""))
+
 	if err != nil {
 		return nil, fmt.Errorf("insertTableOne operation failed. %s", err)
 		panic(err)
@@ -386,8 +388,9 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 		return nil, errors.New("error  in get state")
 	}
 
-	if getBytes != nil {
+	if len(getBytes) != 0 {
 		err = json.Unmarshal(getBytes, &newSubOrderId)
+		fmt.Println("inside if condition that is length of bytes got != 0")
 	}
 
 	fmt.Println("newSubOrderId.suboOderId ", newSubOrderId.suboOderId)
@@ -395,12 +398,13 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	fmt.Println("err ", err)
 
 	newSubOrderId.suboOderId = append(newSubOrderId.suboOderId, strCurrentId)
+
 	bytes, err = json.Marshal(newSubOrderId)
 	if err != nil {
 		return nil, errors.New("error marshalling new subOrderIDS")
 	}
 
-	err = stub.PutState(args[0], bytes)
+	err = stub.PutState(col1Val, bytes)
 
 	return nil, nil
 }
