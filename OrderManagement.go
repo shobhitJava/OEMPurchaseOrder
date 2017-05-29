@@ -59,7 +59,7 @@ func (this *PO) convert(row *shim.Row) {
 	this.Asset_ID = row.Columns[6].GetString_()
 
 }
-func (this *SUBO) convert(row *shim.Row) {
+func (this *SUBO) convertSub(row *shim.Row) {
 
 	this.SubOrderId = row.Columns[0].GetString_()
 	this.Order_Id = row.Columns[1].GetString_()
@@ -113,8 +113,8 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		return nil, errors.New("TIER1 table not created")
 	}
 
-	orderId := "1000"
-	subOrderId := "10000"
+	orderId := "10"
+	subOrderId := "100"
 
 	stub.PutState("orderIdNumber", []byte(orderId))
 	stub.PutState("subOrderIdNumber", []byte(subOrderId))
@@ -220,13 +220,21 @@ func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string, 
 		return nil, fmt.Errorf("getRow operation failed. %s", err)
 	}
 
-	subo := new(SUBO)
-	subo.convert(&row)
+	rowString1 := fmt.Sprintf("%s", row)
 
-	jsonRows, err = json.Marshal(subo)
+	fmt.Println("Suborer id  Row ", rowString1)
 
+	var subo *SUBO
+	var suboList []*SUBO
+
+	subo = new(SUBO)
+	subo.convertSub(&row)
+
+	suboList = append(suboList, subo)
+
+	jsonRows, err = json.Marshal(suboList)
 	if err != nil {
-		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
@@ -444,13 +452,21 @@ func fetchOrderById(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 		return nil, fmt.Errorf("getRow operation failed. %s", err)
 	}
 
-	po := new(PO)
+	rowString1 := fmt.Sprintf("%s", row)
+
+	fmt.Println("OrderId Row ", rowString1)
+
+	var po *PO
+	var poList []*PO
+
+	po = new(PO)
 	po.convert(&row)
 
-	jsonRows, err = json.Marshal(po)
+	poList = append(poList, po)
 
+	jsonRows, err = json.Marshal(poList)
 	if err != nil {
-		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
