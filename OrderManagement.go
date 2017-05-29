@@ -183,10 +183,12 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 		args[0] = sub
 
 		sbytes, err = fetchSubOrderBySubOrderId(stub, args)
+		fmt.Println("sbytes ", string(sbytes))
 
 		err = json.Unmarshal(sbytes, &s)
 
 		if err == nil {
+			fmt.Println("inside iF")
 
 			subo = append(subo, s)
 		}
@@ -220,14 +222,11 @@ func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string) 
 	fmt.Println("Suborer id  Row ", rowString1)
 
 	var subo *SUBO
-	var suboList []*SUBO
 
 	subo = new(SUBO)
 	subo.convertSub(&row)
 
-	suboList = append(suboList, subo)
-
-	jsonRows, err = json.Marshal(suboList)
+	jsonRows, err = json.Marshal(subo)
 	if err != nil {
 		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
