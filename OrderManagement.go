@@ -361,7 +361,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 		return []byte("Row with given key" + args[0] + " already exists"), errors.New("insertTableOne operation failed. Row with given key already exists")
 	}
 
-	var newSubOrderId SUB_ORDERS_LIST
+	newSubOrderId := SUB_ORDERS_LIST{}
 	var getBytes []byte
 	var bytes []byte
 
@@ -369,11 +369,14 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	if err != nil {
 		return nil, errors.New("error  in get state")
 	}
-	err = json.Unmarshal(getBytes, &newSubOrderId)
 
-	if err != nil {
-		return nil, errors.New("error unmarshalling new subOrderIDS")
+	if getBytes != nil {
+		err = json.Unmarshal(getBytes, &newSubOrderId)
 	}
+
+	fmt.Println("newSubOrderId.suboOderId " + newSubOrderId.suboOderId[0])
+	fmt.Println("getBytes " + string(getBytes))
+	fmt.Println("err " + err.Error())
 
 	newSubOrderId.suboOderId = append(newSubOrderId.suboOderId, strCurrentId)
 	bytes, err = json.Marshal(newSubOrderId)
