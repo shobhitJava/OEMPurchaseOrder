@@ -9,13 +9,17 @@ import (
 )
 
 type PO struct {
-	Order_Id       string `json:"order_Id"`
-	Order_Desc     string `json:"order_desc"`
-	Order_Quantity string `json:"order_quantity"`
-	Assigned_To_Id string `json:"assigned_to_id"`
-	Created_By_Id  string `json:"created_by_id"`
-	Order_Status   string `json:"order_status"`
-	Asset_ID       string `json:"asset_ID"`
+	Order_Id         string `json:"Order_Id"`
+	Asset_ID         string `json:"Asset_ID"`
+	Asset_Name       string `json:"Asset_Name"`
+	Order_Desc       string `json:"Order_Desc"`
+	Order_Quantity   string `json:"Order_Quantity"`
+	Supplier_Id      string `json:"Supplier_Id"`
+	Supplier_Name    string `json:"Supplier_Name"`
+	Supplier_Address string `json:"Supplier_Address"`
+	Supplier_Contact string `json:"Supplier_Contact"`
+	Requested_Date   string `json:"Requested_Date"`
+	Order_Status     string `json:"Order_Status"`
 }
 type SUBO struct {
 	SubOrderId     string `json:"subOrder_Id"`
@@ -51,14 +55,19 @@ func main() {
 func (this *PO) convert(row *shim.Row) {
 
 	this.Order_Id = row.Columns[0].GetString_()
-	this.Order_Desc = row.Columns[1].GetString_()
-	this.Order_Quantity = row.Columns[2].GetString_()
-	this.Assigned_To_Id = row.Columns[3].GetString_()
-	this.Created_By_Id = row.Columns[4].GetString_()
-	this.Order_Status = row.Columns[5].GetString_()
-	this.Asset_ID = row.Columns[6].GetString_()
+	this.Asset_ID = row.Columns[1].GetString_()
+	this.Asset_Name = row.Columns[2].GetString_()
+	this.Order_Desc = row.Columns[3].GetString_()
+	this.Order_Quantity = row.Columns[4].GetString_()
+	this.Supplier_Id = row.Columns[5].GetString_()
+	this.Supplier_Name = row.Columns[6].GetString_()
+	this.Supplier_Address = row.Columns[7].GetString_()
+	this.Supplier_Contact = row.Columns[8].GetString_()
+	this.Requested_Date = row.Columns[9].GetString_()
+	this.Order_Status = row.Columns[10].GetString_()
 
 }
+
 func (this *SUBO) convertSub(row *shim.Row) {
 
 	this.SubOrderId = row.Columns[0].GetString_()
@@ -88,12 +97,16 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	err = stub.CreateTable("OEM", []*shim.ColumnDefinition{
 		&shim.ColumnDefinition{"OrderId", shim.ColumnDefinition_STRING, true},
+		&shim.ColumnDefinition{"Asset_ID", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Asset_Name", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Order_Desc", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Order_Quantity", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Assigned_To_Id", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Created_By_Id", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Order_Status", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Asset_ID", shim.ColumnDefinition_STRING, false}})
+		&shim.ColumnDefinition{"Supplier_Id", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Supplier_Name", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Supplier_Address", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Supplier_Contact", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Order_Status", shim.ColumnDefinition_STRING, false}})
 
 	if err != nil {
 		return nil, errors.New("OEM table not created")
@@ -143,6 +156,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchAllOrders(stub, args)
 	}
+	if function == "fetchAllOrdersBySupplierName" {
+
+		return fetchAllOrdersBySupplierName(stub, args)
+	}
 	if function == "fetchOrderById" {
 
 		return fetchOrderById(stub, args)
@@ -156,6 +173,49 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return fetchSubOrderBySubOrderId(stub, args)
 	}
 	return nil, nil
+
+}
+
+func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	poList := []PO{}
+	po := PO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting orders with Order Id ")
+	}
+
+	var orderIds ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &orderIds)
+
+	for _, ord := range orderIds.OrderIds {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchOrderById(stub, args)
+
+		fmt.Println("ordBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &po)
+
+		if err == nil {
+			fmt.Println("inside iF")
+
+			poList = append(poList, po)
+		}
+
+	}
+
+	obytes, err = json.Marshal(poList)
+
+	return obytes, nil
 
 }
 
@@ -235,6 +295,40 @@ func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string) 
 
 }
 
+func fetchOrderByOrderId(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var columns []shim.Column
+	var err error
+	var row shim.Row
+	var jsonRows []byte
+
+	col0 := shim.Column{Value: &shim.Column_String_{String_: args[0]}}
+	columns = append(columns, col0)
+
+	row, err = stub.GetRow("OEM", columns)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRow operation failed. %s", err)
+	}
+
+	rowString1 := fmt.Sprintf("%s", row)
+
+	fmt.Println("order id  Row ", rowString1)
+
+	var po *PO
+
+	po = new(PO)
+	po.convert(&row)
+
+	jsonRows, err = json.Marshal(po)
+	if err != nil {
+		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
+	}
+
+	return jsonRows, nil
+
+}
+
 func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var existingBytes []byte
@@ -250,23 +344,31 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	strCurrentId := "PO" + strconv.Itoa(currentId)
 	stub.PutState("orderIdNumber", []byte(str))
 
-	col1Val := strCurrentId
-	col2Val := args[0]
-	col3Val := args[1]
-	col4Val := "Tier 1"
-	col5Val := "OEM"
-	col6Val := "Order created. Pending with Tier1"
-	col7Val := args[2]
+	col_Val := strCurrentId
+	col1Val := args[0]
+	col2Val := args[1]
+	col3Val := args[2]
+	col4Val := args[3]
+	col5Val := args[4]
+	col6Val := args[5]
+	col7Val := args[6]
+	col8Val := args[7]
+	col9Val := args[8]
+	col10Val := "Created"
 
 	var columns []*shim.Column
 
-	col0 := shim.Column{Value: &shim.Column_String_{String_: col1Val}}
-	col1 := shim.Column{Value: &shim.Column_String_{String_: col2Val}}
-	col2 := shim.Column{Value: &shim.Column_String_{String_: col3Val}}
-	col3 := shim.Column{Value: &shim.Column_String_{String_: col4Val}}
-	col4 := shim.Column{Value: &shim.Column_String_{String_: col5Val}}
-	col5 := shim.Column{Value: &shim.Column_String_{String_: col6Val}}
-	col6 := shim.Column{Value: &shim.Column_String_{String_: col7Val}}
+	col0 := shim.Column{Value: &shim.Column_String_{String_: col_Val}}
+	col1 := shim.Column{Value: &shim.Column_String_{String_: col1Val}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: col2Val}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: col3Val}}
+	col4 := shim.Column{Value: &shim.Column_String_{String_: col4Val}}
+	col5 := shim.Column{Value: &shim.Column_String_{String_: col5Val}}
+	col6 := shim.Column{Value: &shim.Column_String_{String_: col6Val}}
+	col7 := shim.Column{Value: &shim.Column_String_{String_: col7Val}}
+	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
+	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
+	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
 
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)
@@ -275,6 +377,10 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	columns = append(columns, &col4)
 	columns = append(columns, &col5)
 	columns = append(columns, &col6)
+	columns = append(columns, &col7)
+	columns = append(columns, &col8)
+	columns = append(columns, &col9)
+	columns = append(columns, &col10)
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("OEM", row)
@@ -288,7 +394,9 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 		return []byte("Row with given key" + args[0] + " already exists"), errors.New("insertTableOne operation failed. Row with given key already exists")
 	}
 
-	existingBytes, err = stub.GetState("tier1_orders")
+	//store the orders Ids of the orders assigned to tier1 with Tier1Name as key
+
+	existingBytes, err = stub.GetState(col6Val)
 	var newOrderId ORDERS_LIST
 	json.Unmarshal(existingBytes, &newOrderId)
 
@@ -303,7 +411,7 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 		return nil, errors.New("error marshalling new Property Address")
 	}
 
-	err = stub.PutState("tier1_orders", bytes)
+	err = stub.PutState(col6Val, bytes)
 
 	return nil, nil
 }
@@ -413,13 +521,7 @@ func fetchAllOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 				fmt.Println("Inside Else of for loop in query")
 				po := PO{}
 
-				po.Order_Id = row.Columns[0].GetString_()
-				po.Order_Desc = row.Columns[1].GetString_()
-				po.Order_Quantity = row.Columns[2].GetString_()
-				po.Assigned_To_Id = row.Columns[3].GetString_()
-				po.Created_By_Id = row.Columns[4].GetString_()
-				po.Order_Status = row.Columns[5].GetString_()
-				po.Asset_ID = row.Columns[6].GetString_()
+				po.convert(&row)
 
 				orderArray = append(orderArray, po)
 			}
