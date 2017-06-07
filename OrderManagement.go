@@ -201,14 +201,15 @@ func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []strin
 		ordBytes, err = fetchOrderById(stub, args)
 
 		fmt.Println("ordBytes ", string(ordBytes))
+
 		po := PO{}
 		err = json.Unmarshal(ordBytes, &po)
 
 		if err == nil {
 			fmt.Println("inside iF")
-
-			poList = append(poList, po)
 		}
+
+		poList = append(poList, po)
 
 	}
 
