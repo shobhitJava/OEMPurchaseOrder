@@ -172,6 +172,11 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchSubOrderBySubOrderId(stub, args)
 	}
+	if function == "fetchOrderByOrderId" {
+
+		return fetchOrderByOrderId(stub, args)
+	}
+
 	return nil, nil
 
 }
@@ -199,7 +204,7 @@ func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []strin
 
 		args[0] = ord
 
-		ordBytes, err = fetchOrderById(stub, args)
+		ordBytes, err = fetchOrderByOrderId(stub, args)
 
 		fmt.Println("ordBytes ", string(ordBytes))
 
