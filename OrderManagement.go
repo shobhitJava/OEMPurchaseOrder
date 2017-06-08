@@ -184,6 +184,7 @@ func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []strin
 	orderIdsBytes, err := stub.GetState(args[0])
 
 	poList := []PO{}
+	po := PO{}
 
 	if err != nil {
 		return nil, errors.New("some error in getting orders with Order Id ")
@@ -202,7 +203,6 @@ func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []strin
 
 		fmt.Println("ordBytes ", string(ordBytes))
 
-		po := PO{}
 		err = json.Unmarshal(ordBytes, &po)
 
 		if err == nil {
