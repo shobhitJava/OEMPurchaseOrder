@@ -9,17 +9,17 @@ import (
 )
 
 type PO struct {
-	Order_Id         string `json:"Order_Id"`
-	Asset_ID         string `json:"Asset_ID"`
-	Asset_Name       string `json:"Asset_Name"`
-	Order_Desc       string `json:"Order_Desc"`
-	Order_Quantity   string `json:"Order_Quantity"`
-	Supplier_Id      string `json:"Supplier_Id"`
-	Supplier_Name    string `json:"Supplier_Name"`
-	Supplier_Address string `json:"Supplier_Address"`
-	Supplier_Contact string `json:"Supplier_Contact"`
-	Requested_Date   string `json:"Requested_Date"`
-	Order_Status     string `json:"Order_Status"`
+	Order_Id         string `json:"order_Id"`
+	Asset_ID         string `json:"asset_ID"`
+	Asset_Name       string `json:"asset_Name"`
+	Order_Desc       string `json:"order_Desc"`
+	Order_Quantity   string `json:"order_Quantity"`
+	Supplier_Id      string `json:"supplier_Id"`
+	Supplier_Name    string `json:"supplier_Name"`
+	Supplier_Address string `json:"supplier_Address"`
+	Supplier_Contact string `json:"supplier_Contact"`
+	Requested_Date   string `json:"requested_Date"`
+	Order_Status     string `json:"order_Status"`
 }
 type SUBO struct {
 	SubOrderId     string `json:"subOrder_Id"`
@@ -159,10 +159,6 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	if function == "fetchAllOrdersBySupplierName" {
 
 		return fetchAllOrdersBySupplierName(stub, args)
-	}
-	if function == "fetchOrderById" {
-
-		return fetchOrderById(stub, args)
 	}
 	if function == "fetchAllSubOrdersbyOrderId" {
 
@@ -541,42 +537,6 @@ func fetchAllOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 
 	if err != nil {
 		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
-	}
-
-	return jsonRows, nil
-
-}
-func fetchOrderById(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-
-	var columns []shim.Column
-	var err error
-	var row shim.Row
-	var jsonRows []byte
-
-	col0 := shim.Column{Value: &shim.Column_String_{String_: args[0]}}
-	columns = append(columns, col0)
-
-	row, err = stub.GetRow("OEM", columns)
-
-	if err != nil {
-		return nil, fmt.Errorf("getRow operation failed. %s", err)
-	}
-
-	rowString1 := fmt.Sprintf("%s", row)
-
-	fmt.Println("OrderId Row ", rowString1)
-
-	var po *PO
-	var poList []*PO
-
-	po = new(PO)
-	po.convert(&row)
-
-	poList = append(poList, po)
-
-	jsonRows, err = json.Marshal(poList)
-	if err != nil {
-		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
