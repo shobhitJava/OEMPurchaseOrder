@@ -185,7 +185,13 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	if function == "changeOrderStatus" {
 
 		return changeOrderStatus(stub, args)
+	}if function == "fetchAllSubOrders" {
+
+		return fetchAllSubOrders(stub, args)
 	}
+	
+	
+	
 
 	return nil, nil
 
