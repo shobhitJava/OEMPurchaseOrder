@@ -330,10 +330,14 @@ func fetchAllSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 	subOrderArray := []SUBO{}
 
+	fmt.Println("args[0]  = ", args[0])
+
 	for {
 		select {
 
 		case row, ok := <-rowChannel:
+
+			fmt.Println("OK = ", ok)
 
 			if !ok {
 				rowChannel = nil
@@ -341,6 +345,10 @@ func fetchAllSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 				fmt.Println("Inside Else of for loop in query")
 				subo := SUBO{}
+
+				rowString1 := fmt.Sprintf("%s", row)
+
+				fmt.Println("Suborer id  Row ", rowString1)
 
 				subo.convertSub(&row)
 
