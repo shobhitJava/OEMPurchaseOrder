@@ -165,15 +165,13 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 
 func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
-	bytesub, err := stub.GetState("subOrderIdNumber")
-	strSub := string(bytesub)
-	intSub, _ := strconv.Atoi(strSub)
+	byteOrderId, err := stub.GetState("subOrderIdNumber")
+	strOrderId := string(byteOrderId)
+	intOrderId, _ := strconv.Atoi(strOrderId)
 
-	currentSub := intSub + 1
-
-	str := strconv.Itoa(currentSub)
-	strCurrentId := "SUB" + str
-	fmt.Println("current sub Order Number : " + strCurrentId)
+	currentId := intOrderId + 1
+	str := strconv.Itoa(currentId)
+	strCurrentId := "SUB" + strconv.Itoa(currentId)
 	stub.PutState("subOrderIdNumber", []byte(str))
 
 	col_Val := strCurrentId
