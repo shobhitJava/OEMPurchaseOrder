@@ -170,8 +170,10 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	intSub, _ := strconv.Atoi(strSub)
 
 	currentSub := intSub + 1
+
 	str := strconv.Itoa(currentSub)
-	strCurrentId := "SUB" + strconv.Itoa(currentSub)
+	strCurrentId := "SUB" + str
+	fmt.Println("current sub Order Number : " + strCurrentId)
 	stub.PutState("subOrderIdNumber", []byte(str))
 
 	col_Val := strCurrentId
@@ -276,6 +278,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	newSubOrderId.SubOderId = append(newSubOrderId.SubOderId, strCurrentId)
 	subOrderIdBytes, err = json.Marshal(newSubOrderId)
 	stub.PutState(col0Val, subOrderIdBytes)
+
+	fmt.Println("subOrders List for an oRder id " + string(subOrderIdBytes))
 
 	if err != nil {
 		return nil, errors.New("error marshalling new subOrderIDS")
