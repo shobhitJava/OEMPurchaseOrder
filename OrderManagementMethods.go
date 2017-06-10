@@ -170,7 +170,9 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	intOrderId, _ := strconv.Atoi(strOrderId)
 
 	currentId := intOrderId + 1
+	fmt.Println("currentId : " + strconv.Itoa(currentId))
 	str := strconv.Itoa(currentId)
+
 	strCurrentId := "SUB" + strconv.Itoa(currentId)
 	stub.PutState("subOrderIdNumber", []byte(str))
 
@@ -186,11 +188,10 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col8Val := args[8]
 	col9Val := args[9]
 	col10Val := args[10]
-	col11Val := args[11]
 
 	var columns []*shim.Column
 
-	col_ := shim.Column{Value: &shim.Column_String_{String_: col_Val}}
+	col := shim.Column{Value: &shim.Column_String_{String_: col_Val}}
 	col0 := shim.Column{Value: &shim.Column_String_{String_: col0Val}}
 	col1 := shim.Column{Value: &shim.Column_String_{String_: col1Val}}
 	col2 := shim.Column{Value: &shim.Column_String_{String_: col2Val}}
@@ -202,9 +203,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
-	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
 
-	columns = append(columns, &col_)
+	columns = append(columns, &col)
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)
 	columns = append(columns, &col2)
@@ -216,7 +216,6 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	columns = append(columns, &col8)
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
-	columns = append(columns, &col11)
 
 	row := shim.Row{Columns: columns}
 
