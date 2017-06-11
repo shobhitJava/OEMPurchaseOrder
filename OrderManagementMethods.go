@@ -205,6 +205,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
 	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
+
 	columns = append(columns, &col)
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)

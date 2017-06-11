@@ -76,8 +76,8 @@ func (this *SUBO) convertSub(row *shim.Row) {
 
 	this.SubOrderId = row.Columns[0].GetString_()
 	this.Order_Id = row.Columns[1].GetString_()
-	this.Asset_ID = row.Columns[2].GetString_()
-	this.Tier1_Name = row.Columns[3].GetString_()
+	this.Tier1_Name = row.Columns[2].GetString_()
+	this.Asset_ID = row.Columns[3].GetString_()
 	this.Asset_Name = row.Columns[4].GetString_()
 	this.SubOrder_Desc = row.Columns[5].GetString_()
 	this.SubOrder_Quantity = row.Columns[6].GetString_()
@@ -160,6 +160,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 		return createSubOrder(stub, args)
 	}
+	if function == "changeOrderStatus" {
+
+		return changeOrderStatus(stub, args)
+	}
 
 	return nil, nil
 }
@@ -188,10 +192,6 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	if function == "fetchOrderByOrderId" {
 
 		return fetchOrderByOrderId(stub, args)
-	}
-	if function == "changeOrderStatus" {
-
-		return changeOrderStatus(stub, args)
 	}
 	if function == "fetchAllSubOrders" {
 
