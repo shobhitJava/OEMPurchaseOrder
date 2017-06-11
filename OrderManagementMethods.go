@@ -188,6 +188,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col8Val := args[8]
 	col9Val := args[9]
 	col10Val := args[10]
+	col11Val := args[11]
 
 	var columns []*shim.Column
 
@@ -203,7 +204,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
-
+	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
 	columns = append(columns, &col)
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)
@@ -216,6 +217,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	columns = append(columns, &col8)
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
+	columns = append(columns, &col11)
 
 	row := shim.Row{Columns: columns}
 
@@ -237,7 +239,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	// Store the subOrder Ids assigned to a particular tier 2 supplier  with Tier2 Supplier name as key and SubOrder Ids as values
 
 	var getsubOrderIdBytes []byte
-	getsubOrderIdBytes, err = stub.GetState(args[6])
+	getsubOrderIdBytes, err = stub.GetState(args[7])
 
 	fmt.Println("getBytes " + string(getsubOrderIdBytes))
 	fmt.Println(err)
@@ -251,7 +253,7 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 
 	newSubOrderIds.SubOderId = append(newSubOrderIds.SubOderId, strCurrentId)
 	newSubOrderIdBytes, err = json.Marshal(newSubOrderIds)
-	stub.PutState(args[6], newSubOrderIdBytes)
+	stub.PutState(args[7], newSubOrderIdBytes)
 
 	if err != nil {
 		return nil, errors.New("error marshalling new subOrderIDS")
@@ -354,6 +356,56 @@ func fetchAllSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 				subo.convertSub(&row)
 
 				if subo.Supplier2_Name == args[0] {
+					subOrderArray = append(subOrderArray, subo)
+				}
+			}
+
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	jsonRows, err := json.Marshal(subOrderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+	}
+
+	return jsonRows, nil
+
+}
+
+func fetchAllSubOrdersByTier1(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var columns []shim.Column
+	rowChannel, err := stub.GetRows("TIER1", columns)
+
+	subOrderArray := []SUBO{}
+
+	fmt.Println("args[0]  = ", args[0])
+
+	for {
+		select {
+
+		case row, ok := <-rowChannel:
+
+			fmt.Println("OK = ", ok)
+
+			if !ok {
+				rowChannel = nil
+			} else {
+
+				fmt.Println("Inside Else of for loop in query")
+				subo := SUBO{}
+
+				rowString1 := fmt.Sprintf("%s", row)
+
+				fmt.Println("Suborer id  Row ", rowString1)
+
+				subo.convertSub(&row)
+
+				if subo.Tier1_Name == args[0] {
 					subOrderArray = append(subOrderArray, subo)
 				}
 			}

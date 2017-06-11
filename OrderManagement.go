@@ -23,6 +23,7 @@ type PO struct {
 type SUBO struct {
 	SubOrderId        string `json:"subOrder_Id"`
 	Order_Id          string `json:"order_Id"`
+	Tier1_Name        string `json:"tier1_Name"`
 	Asset_ID          string `json:"asset_Id"`
 	Asset_Name        string `json:"asset_Name"`
 	SubOrder_Desc     string `json:"subOrder_Desc"`
@@ -76,15 +77,16 @@ func (this *SUBO) convertSub(row *shim.Row) {
 	this.SubOrderId = row.Columns[0].GetString_()
 	this.Order_Id = row.Columns[1].GetString_()
 	this.Asset_ID = row.Columns[2].GetString_()
-	this.Asset_Name = row.Columns[3].GetString_()
-	this.SubOrder_Desc = row.Columns[4].GetString_()
-	this.SubOrder_Quantity = row.Columns[5].GetString_()
-	this.Supplier2_Id = row.Columns[6].GetString_()
-	this.Supplier2_Name = row.Columns[7].GetString_()
-	this.Supplier2_Address = row.Columns[8].GetString_()
-	this.Supplier2_Contact = row.Columns[9].GetString_()
-	this.Requested_Date = row.Columns[10].GetString_()
-	this.SubOrder_Status = row.Columns[11].GetString_()
+	this.Tier1_Name = row.Columns[3].GetString_()
+	this.Asset_Name = row.Columns[4].GetString_()
+	this.SubOrder_Desc = row.Columns[5].GetString_()
+	this.SubOrder_Quantity = row.Columns[6].GetString_()
+	this.Supplier2_Id = row.Columns[7].GetString_()
+	this.Supplier2_Name = row.Columns[8].GetString_()
+	this.Supplier2_Address = row.Columns[9].GetString_()
+	this.Supplier2_Contact = row.Columns[10].GetString_()
+	this.Requested_Date = row.Columns[11].GetString_()
+	this.SubOrder_Status = row.Columns[12].GetString_()
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -121,6 +123,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	err = stub.CreateTable("TIER1", []*shim.ColumnDefinition{
 		&shim.ColumnDefinition{"SubOrderId", shim.ColumnDefinition_STRING, true},
 		&shim.ColumnDefinition{"Order_Id", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Tier1_Name", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Asset_ID", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Asset_Name", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"SubOrder_Desc", shim.ColumnDefinition_STRING, false},
@@ -208,11 +211,14 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 	orderStatus := po.Order_Status
 
-	if orderStatus == "Created" && args[0] == "Accept" {
+	if orderStatus == "New" && args[1] == "Accept" {
 		po.Order_Status = "InProgress"
 	}
-	if orderStatus == "InProgress" && args[0] == "Reject" {
-		po.Order_Status = "Rejected by Tier1"
+	if orderStatus == "InProgress" && args[1] == "Dispatched" {
+		po.Order_Status = "Completed"
+	}
+	if orderStatus == "New" && args[1] == "Reject" {
+		po.Order_Status = "Rejected byTier1"
 	}
 
 	col_Val := args[0]
