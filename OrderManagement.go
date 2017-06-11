@@ -169,6 +169,10 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchAllOrders(stub, args)
 	}
+	if function == "fetchAllSubOrdersByTier1" {
+
+		return fetchAllSubOrdersByTier1(stub, args)
+	}
 	if function == "fetchAllOrdersBySupplierName" {
 
 		return fetchAllOrdersBySupplierName(stub, args)

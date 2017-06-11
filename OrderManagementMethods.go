@@ -101,7 +101,7 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	col7Val := args[6]
 	col8Val := args[7]
 	col9Val := args[8]
-	col10Val := "Created"
+	col10Val := args[9]
 
 	var columns []*shim.Column
 
