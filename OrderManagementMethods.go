@@ -327,7 +327,7 @@ func fetchAllOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	return jsonRows, nil
 
 }
-func fetchAllSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func fetchAllSubOrdersAssignedToTier2(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var columns []shim.Column
 	rowChannel, err := stub.GetRows("TIER1", columns)

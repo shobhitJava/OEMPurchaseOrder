@@ -177,9 +177,17 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchAllSubOrdersByTier1(stub, args)
 	}
-	if function == "fetchAllOrdersBySupplierName" {
+	if function == "fetchCompletedOrders" {
 
-		return fetchAllOrdersBySupplierName(stub, args)
+		return fetchCompletedOrders(stub, args)
+	}
+	if function == "fetchInProgressOrders" {
+
+		return fetchInProgressOrders(stub, args)
+	}
+	if function == "fetchNewOrders" {
+
+		return fetchNewOrders(stub, args)
 	}
 	if function == "fetchAllSubOrdersbyOrderId" {
 
@@ -193,9 +201,9 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchOrderByOrderId(stub, args)
 	}
-	if function == "fetchAllSubOrders" {
+	if function == "fetchAllSubOrdersAssignedToTier2" {
 
-		return fetchAllSubOrders(stub, args)
+		return fetchAllSubOrdersAssignedToTier2(stub, args)
 	}
 
 	return nil, nil
@@ -280,7 +288,7 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 }
 
-func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func fetchNewOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var ordBytes []byte
 	var obytes []byte
@@ -313,8 +321,99 @@ func fetchAllOrdersBySupplierName(stub shim.ChaincodeStubInterface, args []strin
 			fmt.Println("inside iF")
 		}
 
-		poList = append(poList, po)
+		if po.Order_Status == "New" {
 
+			poList = append(poList, po)
+		}
+	}
+
+	obytes, err = json.Marshal(poList)
+
+	return obytes, nil
+
+}
+func fetchInProgressOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	poList := []PO{}
+	po := PO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting orders with Order Id ")
+	}
+
+	var orderIds ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &orderIds)
+
+	for _, ord := range orderIds.OrderIds {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchOrderByOrderId(stub, args)
+
+		fmt.Println("ordBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &po)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if po.Order_Status == "InProgress" {
+
+			poList = append(poList, po)
+		}
+	}
+
+	obytes, err = json.Marshal(poList)
+
+	return obytes, nil
+
+}
+
+func fetchCompletedOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	poList := []PO{}
+	po := PO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting orders with Order Id ")
+	}
+
+	var orderIds ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &orderIds)
+
+	for _, ord := range orderIds.OrderIds {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchOrderByOrderId(stub, args)
+
+		fmt.Println("ordBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &po)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if po.Order_Status == "Completed" {
+
+			poList = append(poList, po)
+		}
 	}
 
 	obytes, err = json.Marshal(poList)
