@@ -164,6 +164,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 		return changeOrderStatus(stub, args)
 	}
+	if function == "changeSuborderStatus" {
+
+		return changeSuborderStatus(stub, args)
+	}
 
 	return nil, nil
 }
@@ -205,8 +209,104 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 
 		return fetchAllSubOrdersAssignedToTier2(stub, args)
 	}
+	if function == "fetchCompletedSubOrders" {
+
+		return fetchCompletedSubOrders(stub, args)
+	}
+	if function == "fetchInProgressSubOrders" {
+
+		return fetchInProgressSubOrders(stub, args)
+	}
+	if function == "fetchNewSubOrders" {
+
+		return fetchNewSubOrders(stub, args)
+	}
 
 	return nil, nil
+
+}
+
+func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var subOrderBytes []byte
+	subo := SUBO{}
+	var err error
+	var message string
+
+	subOrderBytes, err = fetchSubOrderBySubOrderId(stub, args)
+
+	err = json.Unmarshal(subOrderBytes, &subo)
+
+	orderStatus := subo.SubOrder_Status
+
+	if orderStatus == "New" && args[1] == "Accept" {
+		subo.SubOrder_Status = "InProgress"
+	}
+	if orderStatus == "InProgress" && args[1] == "Dispatched" {
+		subo.SubOrder_Status = "Completed"
+	}
+	if orderStatus == "New" && args[1] == "Reject" {
+		subo.SubOrder_Status = "Rejected"
+	}
+
+	col_Val := args[0]
+	colVal0 := subo.Order_Id
+	colVal1 := subo.Tier1_Name
+	col1Val := subo.Asset_ID
+	col2Val := subo.Asset_Name
+	col3Val := subo.SubOrder_Desc
+	col4Val := subo.SubOrder_Quantity
+	col5Val := subo.Supplier2_Id
+	col6Val := subo.Supplier2_Name
+	col7Val := subo.Supplier2_Address
+	col8Val := subo.Supplier2_Contact
+	col9Val := subo.Requested_Date
+	col10Val := subo.SubOrder_Status
+
+	var columns []*shim.Column
+
+	col0 := shim.Column{Value: &shim.Column_String_{String_: col_Val}}
+	col01 := shim.Column{Value: &shim.Column_String_{String_: colVal0}}
+	col02 := shim.Column{Value: &shim.Column_String_{String_: colVal1}}
+	col1 := shim.Column{Value: &shim.Column_String_{String_: col1Val}}
+	col2 := shim.Column{Value: &shim.Column_String_{String_: col2Val}}
+	col3 := shim.Column{Value: &shim.Column_String_{String_: col3Val}}
+	col4 := shim.Column{Value: &shim.Column_String_{String_: col4Val}}
+	col5 := shim.Column{Value: &shim.Column_String_{String_: col5Val}}
+	col6 := shim.Column{Value: &shim.Column_String_{String_: col6Val}}
+	col7 := shim.Column{Value: &shim.Column_String_{String_: col7Val}}
+	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
+	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
+	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
+
+	columns = append(columns, &col0)
+	columns = append(columns, &col01)
+	columns = append(columns, &col02)
+	columns = append(columns, &col1)
+	columns = append(columns, &col2)
+	columns = append(columns, &col3)
+	columns = append(columns, &col4)
+	columns = append(columns, &col5)
+	columns = append(columns, &col6)
+	columns = append(columns, &col7)
+	columns = append(columns, &col8)
+	columns = append(columns, &col9)
+	columns = append(columns, &col10)
+
+	row := shim.Row{Columns: columns}
+	ok, err := stub.ReplaceRow("TIER1", row)
+
+	if err != nil {
+		return nil, fmt.Errorf("update status operation failed. %s", err)
+		panic(err)
+
+	}
+	if !ok {
+		return []byte("Row with given key" + args[0] + " already exists"), errors.New("insertTableOne operation failed. Row with given key already exists")
+	}
+
+	message = "Sub Order Status Updated"
+	return []byte(message), nil
 
 }
 
@@ -230,7 +330,7 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 		po.Order_Status = "Completed"
 	}
 	if orderStatus == "New" && args[1] == "Reject" {
-		po.Order_Status = "Rejected byTier1"
+		po.Order_Status = "Rejected"
 	}
 
 	col_Val := args[0]
@@ -285,6 +385,141 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 	message = "Order Status Updated"
 	return []byte(message), nil
+
+}
+
+func fetchCompletedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	subOrdList := []SUBO{}
+	subo := SUBO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting sub orders with subOrder Id ")
+	}
+
+	var subOrderIds SUB_ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &subOrderIds)
+
+	for _, ord := range subOrderIds.SubOderId {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchSubOrderBySubOrderId(stub, args)
+
+		fmt.Println("subOrderBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &subo)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if subo.SubOrder_Status == "Completed" {
+
+			subOrdList = append(subOrdList, subo)
+		}
+	}
+
+	obytes, err = json.Marshal(subOrdList)
+
+	return obytes, nil
+
+}
+
+func fetchInProgressSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	subOrdList := []SUBO{}
+	subo := SUBO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting sub orders with subOrder Id ")
+	}
+
+	var subOrderIds SUB_ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &subOrderIds)
+
+	for _, ord := range subOrderIds.SubOderId {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchSubOrderBySubOrderId(stub, args)
+
+		fmt.Println("subOrderBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &subo)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if subo.SubOrder_Status == "InProgress" {
+
+			subOrdList = append(subOrdList, subo)
+		}
+	}
+
+	obytes, err = json.Marshal(subOrdList)
+
+	return obytes, nil
+
+}
+
+func fetchNewSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	subOrdList := []SUBO{}
+	subo := SUBO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting sub orders with subOrder Id ")
+	}
+
+	var subOrderIds SUB_ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &subOrderIds)
+
+	for _, ord := range subOrderIds.SubOderId {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchSubOrderBySubOrderId(stub, args)
+
+		fmt.Println("subOrderBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &subo)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if subo.SubOrder_Status == "New" {
+
+			subOrdList = append(subOrdList, subo)
+		}
+	}
+
+	obytes, err = json.Marshal(subOrdList)
+
+	return obytes, nil
 
 }
 
