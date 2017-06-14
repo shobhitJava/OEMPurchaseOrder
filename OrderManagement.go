@@ -239,13 +239,19 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 
 	orderStatus := subo.SubOrder_Status
 
-	if orderStatus == "New" && args[1] == "Accept" {
+	if orderStatus == "New" && args[1] == "InProgress" {
 		subo.SubOrder_Status = "InProgress"
 	}
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
 		subo.SubOrder_Status = "Completed"
 	}
-	if orderStatus == "New" && args[1] == "Reject" {
+	if orderStatus == "InProgress" && args[1] == "Delayed" {
+		subo.SubOrder_Status = "Delayed"
+	}
+	if orderStatus == "Completed" && args[1] == "Received" {
+		subo.SubOrder_Status = "Received"
+	}
+	if orderStatus == "New" && args[1] == "Rejected" {
 		subo.SubOrder_Status = "Rejected"
 	}
 
@@ -323,13 +329,19 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 
 	orderStatus := po.Order_Status
 
-	if orderStatus == "New" && args[1] == "Accept" {
+	if orderStatus == "New" && args[1] == "InProgress" {
 		po.Order_Status = "InProgress"
 	}
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
 		po.Order_Status = "Completed"
 	}
-	if orderStatus == "New" && args[1] == "Reject" {
+	if orderStatus == "InProgress" && args[1] == "Delayed" {
+		po.Order_Status = "Delayed"
+	}
+	if orderStatus == "Completed" && args[1] == "Received" {
+		po.Order_Status = "Received"
+	}
+	if orderStatus == "New" && args[1] == "Rejected" {
 		po.Order_Status = "Rejected"
 	}
 
