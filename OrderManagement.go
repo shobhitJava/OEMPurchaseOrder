@@ -168,11 +168,27 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 		return changeSuborderStatus(stub, args)
 	}
+	if function == "deleteOrder" {
+
+		return deleteOrder(stub, args)
+	}
+	if function == "deleteSubOrder" {
+
+		return deleteSubOrder(stub, args)
+	}
 
 	return nil, nil
 }
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
+	if function == "fetchAllDelayedOrders" {
+
+		return fetchAllDelayedOrders(stub, args)
+	}
+	if function == "fetchAllDelayedSubOrders" {
+
+		return fetchAllDelayedSubOrders(stub, args)
+	}
 	if function == "fetchAllOrders" {
 
 		return fetchAllOrders(stub, args)
@@ -243,13 +259,13 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 		subo.SubOrder_Status = "InProgress"
 	}
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
-		subo.SubOrder_Status = "Completed"
+		subo.SubOrder_Status = "Dispatched"
 	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
 		subo.SubOrder_Status = "Delayed"
 	}
-	if orderStatus == "Completed" && args[1] == "Received" {
-		subo.SubOrder_Status = "Received"
+	if orderStatus == "Dispatched" && args[1] == "Completed" {
+		subo.SubOrder_Status = "Completed"
 	}
 	if orderStatus == "New" && args[1] == "Rejected" {
 		subo.SubOrder_Status = "Rejected"
@@ -333,13 +349,13 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 		po.Order_Status = "InProgress"
 	}
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
-		po.Order_Status = "Completed"
+		po.Order_Status = "Dispatched"
 	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
 		po.Order_Status = "Delayed"
 	}
-	if orderStatus == "Completed" && args[1] == "Received" {
-		po.Order_Status = "Received"
+	if orderStatus == "Dispatched" && args[1] == "Completed" {
+		po.Order_Status = "Completed"
 	}
 	if orderStatus == "New" && args[1] == "Rejected" {
 		po.Order_Status = "Rejected"
@@ -445,6 +461,50 @@ func fetchCompletedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([
 
 }
 
+func fetchAllDelayedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	subOrdList := []SUBO{}
+	subo := SUBO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting sub orders with subOrder Id ")
+	}
+
+	var subOrderIds SUB_ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &subOrderIds)
+
+	for _, ord := range subOrderIds.SubOderId {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchSubOrderBySubOrderId(stub, args)
+
+		fmt.Println("subOrderBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &subo)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if subo.SubOrder_Status == "Delayed" {
+
+			subOrdList = append(subOrdList, subo)
+		}
+	}
+
+	obytes, err = json.Marshal(subOrdList)
+
+	return obytes, nil
+
+}
 func fetchInProgressSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var ordBytes []byte
@@ -530,6 +590,50 @@ func fetchNewSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	}
 
 	obytes, err = json.Marshal(subOrdList)
+
+	return obytes, nil
+
+}
+func fetchAllDelayedOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	var ordBytes []byte
+	var obytes []byte
+
+	orderIdsBytes, err := stub.GetState(args[0])
+
+	poList := []PO{}
+	po := PO{}
+
+	if err != nil {
+		return nil, errors.New("some error in getting orders with Order Id ")
+	}
+
+	var orderIds ORDERS_LIST
+	json.Unmarshal(orderIdsBytes, &orderIds)
+
+	for _, ord := range orderIds.OrderIds {
+
+		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
+
+		args[0] = ord
+
+		ordBytes, err = fetchOrderByOrderId(stub, args)
+
+		fmt.Println("ordBytes ", string(ordBytes))
+
+		err = json.Unmarshal(ordBytes, &po)
+
+		if err == nil {
+			fmt.Println("inside iF")
+		}
+
+		if po.Order_Status == "Delayed" {
+
+			poList = append(poList, po)
+		}
+	}
+
+	obytes, err = json.Marshal(poList)
 
 	return obytes, nil
 
@@ -708,5 +812,46 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 	suboBytes, err = json.Marshal(subo)
 
 	return suboBytes, nil
+
+}
+
+func deleteOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	colVal0 := args[0]
+
+	var columns []shim.Column
+	col1_1 := shim.Column{Value: &shim.Column_String_{String_: colVal0}}
+
+	columns = append(columns, col1_1)
+	err := stub.DeleteRow("OEM", columns)
+
+	if err != nil {
+		return nil, fmt.Errorf("Delete Row operation failed. %s", err)
+		panic(err)
+
+	}
+
+	message := "Order Deleted"
+	return []byte(message), nil
+
+}
+
+func deleteSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	colVal0 := args[0]
+
+	var columns []shim.Column
+	col1_1 := shim.Column{Value: &shim.Column_String_{String_: colVal0}}
+
+	columns = append(columns, col1_1)
+	err := stub.DeleteRow("TIER1", columns)
+
+	if err != nil {
+		return nil, fmt.Errorf("Delete Row operation failed. %s", err)
+		panic(err)
+
+	}
+	message := "Sub Order Deleted"
+	return []byte(message), nil
 
 }
