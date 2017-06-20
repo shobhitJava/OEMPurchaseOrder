@@ -19,6 +19,8 @@ type PO struct {
 	Supplier_Contact string `json:"supplier_Contact"`
 	Requested_Date   string `json:"requested_Date"`
 	Order_Status     string `json:"order_Status"`
+	Revised_Date     string `json:"revised_Date"`
+	Notification     string `json:"notification"`
 }
 type SUBO struct {
 	SubOrderId        string `json:"subOrder_Id"`
@@ -34,6 +36,8 @@ type SUBO struct {
 	Supplier2_Contact string `json:"supplier2_Contact"`
 	Requested_Date    string `json:"requested_Date"`
 	SubOrder_Status   string `json:"subOrder_Status"`
+	Revised_Date      string `json:"revised_Date"`
+	Notification      string `json:"notification"`
 }
 
 type ORDERS_LIST struct {
@@ -69,6 +73,8 @@ func (this *PO) convert(row *shim.Row) {
 	this.Supplier_Contact = row.Columns[8].GetString_()
 	this.Requested_Date = row.Columns[9].GetString_()
 	this.Order_Status = row.Columns[10].GetString_()
+	this.Revised_Date = row.Columns[11].GetString_()
+	this.Notification = row.Columns[12].GetString_()
 
 }
 
@@ -87,6 +93,8 @@ func (this *SUBO) convertSub(row *shim.Row) {
 	this.Supplier2_Contact = row.Columns[10].GetString_()
 	this.Requested_Date = row.Columns[11].GetString_()
 	this.SubOrder_Status = row.Columns[12].GetString_()
+	this.Revised_Date = row.Columns[13].GetString_()
+	this.Notification = row.Columns[14].GetString_()
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -114,7 +122,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		&shim.ColumnDefinition{"Supplier_Address", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Supplier_Contact", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Order_Status", shim.ColumnDefinition_STRING, false}})
+		&shim.ColumnDefinition{"Order_Status", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Revised_Date", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Notification", shim.ColumnDefinition_STRING, false}})
 
 	if err != nil {
 		return nil, errors.New("OEM table not created")
@@ -133,7 +143,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		&shim.ColumnDefinition{"Supplier2_Address", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Supplier2_Contact", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"SubOrder_Status", shim.ColumnDefinition_STRING, false}})
+		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Revised_Date", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"Notification", shim.ColumnDefinition_STRING, false}})
 
 	if err != nil {
 		return nil, errors.New("TIER1 table not created")
@@ -263,6 +275,8 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
 		subo.SubOrder_Status = "Delayed"
+		subo.Revised_Date = args[2]
+		subo.Notification = args[3]
 	}
 	if orderStatus == "Dispatched" && args[1] == "Completed" {
 		subo.SubOrder_Status = "Completed"
@@ -284,6 +298,8 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 	col8Val := subo.Supplier2_Contact
 	col9Val := subo.Requested_Date
 	col10Val := subo.SubOrder_Status
+	col11Val := subo.Revised_Date
+	col12Val := subo.Notification
 
 	var columns []*shim.Column
 
@@ -300,6 +316,8 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
+	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
+	col12 := shim.Column{Value: &shim.Column_String_{String_: col12Val}}
 
 	columns = append(columns, &col0)
 	columns = append(columns, &col01)
@@ -314,6 +332,8 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 	columns = append(columns, &col8)
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
+	columns = append(columns, &col11)
+	columns = append(columns, &col12)
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.ReplaceRow("TIER1", row)
@@ -353,6 +373,8 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
 		po.Order_Status = "Delayed"
+		po.Revised_Date = args[2]
+		po.Notification = args[3]
 	}
 	if orderStatus == "Dispatched" && args[1] == "Completed" {
 		po.Order_Status = "Completed"
@@ -372,6 +394,8 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	col8Val := po.Supplier_Contact
 	col9Val := po.Requested_Date
 	col10Val := po.Order_Status
+	col11Val := po.Revised_Date
+	col12Val := po.Notification
 
 	var columns []*shim.Column
 
@@ -386,6 +410,8 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
+	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
+	col12 := shim.Column{Value: &shim.Column_String_{String_: col12Val}}
 
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)
@@ -398,6 +424,8 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	columns = append(columns, &col8)
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
+	columns = append(columns, &col11)
+	columns = append(columns, &col12)
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.ReplaceRow("OEM", row)
@@ -463,48 +491,54 @@ func fetchCompletedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([
 
 func fetchAllDelayedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
-	var ordBytes []byte
-	var obytes []byte
+	var columns []shim.Column
+	rowChannel, err := stub.GetRows("TIER1", columns)
 
-	orderIdsBytes, err := stub.GetState(args[0])
+	subOrderArray := []SUBO{}
 
-	subOrdList := []SUBO{}
-	subo := SUBO{}
+	fmt.Println("args[0]  = ", args[0])
+
+	for {
+		select {
+
+		case row, ok := <-rowChannel:
+
+			fmt.Println("OK = ", ok)
+
+			if !ok {
+				rowChannel = nil
+			} else {
+
+				fmt.Println("Inside Else of for loop in query")
+				subo := SUBO{}
+
+				rowString1 := fmt.Sprintf("%s", row)
+
+				fmt.Println("Suborer id  Row ", rowString1)
+
+				subo.convertSub(&row)
+
+				if subo.SubOrder_Status == "Delayed" && subo.Tier1_Name == args[0] {
+					subOrderArray = append(subOrderArray, subo)
+				}
+			}
+
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	jsonRows, err := json.Marshal(subOrderArray)
 
 	if err != nil {
-		return nil, errors.New("some error in getting sub orders with subOrder Id ")
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 	}
 
-	var subOrderIds SUB_ORDERS_LIST
-	json.Unmarshal(orderIdsBytes, &subOrderIds)
-
-	for _, ord := range subOrderIds.SubOderId {
-
-		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
-
-		args[0] = ord
-
-		ordBytes, err = fetchSubOrderBySubOrderId(stub, args)
-
-		fmt.Println("subOrderBytes ", string(ordBytes))
-
-		err = json.Unmarshal(ordBytes, &subo)
-
-		if err == nil {
-			fmt.Println("inside iF")
-		}
-
-		if subo.SubOrder_Status == "Delayed" {
-
-			subOrdList = append(subOrdList, subo)
-		}
-	}
-
-	obytes, err = json.Marshal(subOrdList)
-
-	return obytes, nil
+	return jsonRows, nil
 
 }
+
 func fetchInProgressSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
 	var ordBytes []byte
@@ -594,48 +628,54 @@ func fetchNewSubOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 	return obytes, nil
 
 }
+
 func fetchAllDelayedOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 
-	var ordBytes []byte
-	var obytes []byte
+	var columns []shim.Column
+	rowChannel, err := stub.GetRows("OEM", columns)
 
-	orderIdsBytes, err := stub.GetState(args[0])
+	orderArray := []PO{}
 
-	poList := []PO{}
-	po := PO{}
+	fmt.Println("args[0]  = ", args[0])
+
+	for {
+		select {
+
+		case row, ok := <-rowChannel:
+
+			fmt.Println("OK = ", ok)
+
+			if !ok {
+				rowChannel = nil
+			} else {
+
+				fmt.Println("Inside Else of for loop in query")
+				po := PO{}
+
+				rowString1 := fmt.Sprintf("%s", row)
+
+				fmt.Println("Suborer id  Row ", rowString1)
+
+				po.convert(&row)
+
+				if po.Order_Status == "Delayed" {
+					orderArray = append(orderArray, po)
+				}
+			}
+
+		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	jsonRows, err := json.Marshal(orderArray)
 
 	if err != nil {
-		return nil, errors.New("some error in getting orders with Order Id ")
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 	}
 
-	var orderIds ORDERS_LIST
-	json.Unmarshal(orderIdsBytes, &orderIds)
-
-	for _, ord := range orderIds.OrderIds {
-
-		fmt.Println("Inside for loop for getting orders. orderId is  ", ord)
-
-		args[0] = ord
-
-		ordBytes, err = fetchOrderByOrderId(stub, args)
-
-		fmt.Println("ordBytes ", string(ordBytes))
-
-		err = json.Unmarshal(ordBytes, &po)
-
-		if err == nil {
-			fmt.Println("inside iF")
-		}
-
-		if po.Order_Status == "Delayed" {
-
-			poList = append(poList, po)
-		}
-	}
-
-	obytes, err = json.Marshal(poList)
-
-	return obytes, nil
+	return jsonRows, nil
 
 }
 

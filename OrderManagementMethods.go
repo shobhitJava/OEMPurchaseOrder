@@ -102,6 +102,8 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	col8Val := args[7]
 	col9Val := args[8]
 	col10Val := args[9]
+	col11Val := ""
+	col12Val := ""
 
 	var columns []*shim.Column
 
@@ -116,6 +118,8 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	col8 := shim.Column{Value: &shim.Column_String_{String_: col8Val}}
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
+	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
+	col12 := shim.Column{Value: &shim.Column_String_{String_: col12Val}}
 
 	columns = append(columns, &col0)
 	columns = append(columns, &col1)
@@ -128,6 +132,8 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	columns = append(columns, &col8)
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
+	columns = append(columns, &col11)
+	columns = append(columns, &col12)
 
 	row := shim.Row{Columns: columns}
 	ok, err := stub.InsertRow("OEM", row)
@@ -189,6 +195,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col9Val := args[9]
 	col10Val := args[10]
 	col11Val := args[11]
+	col12Val := ""
+	col13Val := ""
 
 	var columns []*shim.Column
 
@@ -205,6 +213,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col9 := shim.Column{Value: &shim.Column_String_{String_: col9Val}}
 	col10 := shim.Column{Value: &shim.Column_String_{String_: col10Val}}
 	col11 := shim.Column{Value: &shim.Column_String_{String_: col11Val}}
+	col12 := shim.Column{Value: &shim.Column_String_{String_: col12Val}}
+	col13 := shim.Column{Value: &shim.Column_String_{String_: col13Val}}
 
 	columns = append(columns, &col)
 	columns = append(columns, &col0)
@@ -219,6 +229,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	columns = append(columns, &col9)
 	columns = append(columns, &col10)
 	columns = append(columns, &col11)
+	columns = append(columns, &col12)
+	columns = append(columns, &col13)
 
 	row := shim.Row{Columns: columns}
 
