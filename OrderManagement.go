@@ -133,7 +133,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		&shim.ColumnDefinition{"Supplier2_Address", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Supplier2_Contact", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
-		&shim.ColumnDefinition{"Requested_Date", shim.ColumnDefinition_STRING, false},
+		&shim.ColumnDefinition{"SubOrder_Status", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Revised_Date", shim.ColumnDefinition_STRING, false},
 		&shim.ColumnDefinition{"Notification", shim.ColumnDefinition_STRING, false}})
 
