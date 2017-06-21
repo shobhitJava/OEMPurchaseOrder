@@ -99,17 +99,7 @@ func (this *SUBO) convertSub(row *shim.Row) {
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
-	var orderIDsBytes []byte
-
 	var err error
-
-	var orderIds ORDERS_LIST
-
-	orderIDsBytes, err = json.Marshal(orderIds)
-
-	stub.PutState("tier1_orders", orderIDsBytes)
-
-	//above array will save the orders assigned to Tier 1
 
 	err = stub.CreateTable("OEM", []*shim.ColumnDefinition{
 		&shim.ColumnDefinition{"OrderId", shim.ColumnDefinition_STRING, true},
@@ -156,6 +146,8 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 
 	stub.PutState("orderIdNumber", []byte(orderId))
 	stub.PutState("subOrderIdNumber", []byte(subOrderId))
+
+	fmt.Println("Inside INIT. Init Completed")
 
 	return nil, nil
 
