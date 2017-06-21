@@ -138,7 +138,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 		&shim.ColumnDefinition{"Notification", shim.ColumnDefinition_STRING, false}})
 
 	if err != nil {
-		return nil, errors.New("TIER1 table not created")
+		return nil, errors.New("TIER1 table not created" + err.Error())
 	}
 
 	orderId := "10"
