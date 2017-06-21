@@ -81,6 +81,12 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	var existingBytes []byte
 	var bytes []byte
 
+	var revisedDate string
+	var notification string
+
+	revisedDate = " "
+	notification = " "
+
 	//OrderId
 	byteOrderId, err := stub.GetState("orderIdNumber")
 	strOrderId := string(byteOrderId)
@@ -102,8 +108,8 @@ func createOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, error
 	col8Val := args[7]
 	col9Val := args[8]
 	col10Val := args[9]
-	col11Val := ""
-	col12Val := ""
+	col11Val := revisedDate
+	col12Val := notification
 
 	var columns []*shim.Column
 
@@ -182,6 +188,12 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	strCurrentId := "SUB" + strconv.Itoa(currentId)
 	stub.PutState("subOrderIdNumber", []byte(str))
 
+	var revisedDate string
+	var notification string
+
+	revisedDate = " "
+	notification = " "
+
 	col_Val := strCurrentId
 	col0Val := args[0]
 	col1Val := args[1]
@@ -195,8 +207,8 @@ func createSubOrder(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 	col9Val := args[9]
 	col10Val := args[10]
 	col11Val := args[11]
-	col12Val := ""
-	col13Val := ""
+	col12Val := revisedDate
+	col13Val := notification
 
 	var columns []*shim.Column
 
