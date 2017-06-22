@@ -565,7 +565,7 @@ func fetchInProgressSubOrders(stub shim.ChaincodeStubInterface, args []string) (
 			fmt.Println("inside iF")
 		}
 
-		if subo.SubOrder_Status == "InProgress" {
+		if subo.SubOrder_Status == "InProgress" || subo.SubOrder_Status == "Delayed" {
 
 			subOrdList = append(subOrdList, subo)
 		}
@@ -750,7 +750,7 @@ func fetchInProgressOrders(stub shim.ChaincodeStubInterface, args []string) ([]b
 			fmt.Println("inside iF")
 		}
 
-		if po.Order_Status == "InProgress" {
+		if po.Order_Status == "InProgress" || po.Order_Status == "Delayed" {
 
 			poList = append(poList, po)
 		}
