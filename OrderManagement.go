@@ -487,48 +487,45 @@ func fetchAllDelayedSubOrders(stub shim.ChaincodeStubInterface, args []string) (
 	rowChannel, err := stub.GetRows("TIER1", columns)
 	var jsonRows []byte
 
-	if len(rowChannel) > 0 {
+	subOrderArray := []SUBO{}
 
-		subOrderArray := []SUBO{}
+	fmt.Println("args[0]  = ", args[0])
 
-		fmt.Println("args[0]  = ", args[0])
+	for {
+		select {
 
-		for {
-			select {
+		case row, ok := <-rowChannel:
 
-			case row, ok := <-rowChannel:
+			fmt.Println("OK = ", ok)
 
-				fmt.Println("OK = ", ok)
+			if !ok {
+				rowChannel = nil
+			} else {
 
-				if !ok {
-					rowChannel = nil
-				} else {
+				fmt.Println("Inside Else of for loop in query")
+				subo := SUBO{}
 
-					fmt.Println("Inside Else of for loop in query")
-					subo := SUBO{}
+				rowString1 := fmt.Sprintf("%s", row)
 
-					rowString1 := fmt.Sprintf("%s", row)
+				fmt.Println("Suborer id  Row ", rowString1)
 
-					fmt.Println("Suborer id  Row ", rowString1)
+				subo.convertSub(&row)
 
-					subo.convertSub(&row)
-
-					if subo.SubOrder_Status == "Delayed" && subo.Tier1_Name == args[0] {
-						subOrderArray = append(subOrderArray, subo)
-					}
+				if subo.SubOrder_Status == "Delayed" && subo.Tier1_Name == args[0] {
+					subOrderArray = append(subOrderArray, subo)
 				}
-
 			}
-			if rowChannel == nil {
-				break
-			}
-		}
 
-		jsonRows, err = json.Marshal(subOrderArray)
-
-		if err != nil {
-			return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	jsonRows, err = json.Marshal(subOrderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
@@ -631,48 +628,45 @@ func fetchAllDelayedOrders(stub shim.ChaincodeStubInterface, args []string) ([]b
 	rowChannel, err := stub.GetRows("OEM", columns)
 	var jsonRows []byte
 
-	if len(rowChannel) > 0 {
+	orderArray := []PO{}
 
-		orderArray := []PO{}
+	fmt.Println("args[0]  = ", args[0])
 
-		fmt.Println("args[0]  = ", args[0])
+	for {
+		select {
 
-		for {
-			select {
+		case row, ok := <-rowChannel:
 
-			case row, ok := <-rowChannel:
+			fmt.Println("OK = ", ok)
 
-				fmt.Println("OK = ", ok)
+			if !ok {
+				rowChannel = nil
+			} else {
 
-				if !ok {
-					rowChannel = nil
-				} else {
+				fmt.Println("Inside Else of for loop in query")
+				po := PO{}
 
-					fmt.Println("Inside Else of for loop in query")
-					po := PO{}
+				rowString1 := fmt.Sprintf("%s", row)
 
-					rowString1 := fmt.Sprintf("%s", row)
+				fmt.Println("Suborer id  Row ", rowString1)
 
-					fmt.Println("Suborer id  Row ", rowString1)
+				po.convert(&row)
 
-					po.convert(&row)
-
-					if po.Order_Status == "Delayed" {
-						orderArray = append(orderArray, po)
-					}
+				if po.Order_Status == "Delayed" {
+					orderArray = append(orderArray, po)
 				}
-
 			}
-			if rowChannel == nil {
-				break
-			}
-		}
 
-		jsonRows, err = json.Marshal(orderArray)
-
-		if err != nil {
-			return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 		}
+		if rowChannel == nil {
+			break
+		}
+	}
+
+	jsonRows, err = json.Marshal(orderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
@@ -821,39 +815,35 @@ func fetchAllSubOrdersbyOrderId(stub shim.ChaincodeStubInterface, args []string)
 	orderId := args[0]
 	subOrderBytes, err := stub.GetState(orderId)
 
-	if len(subOrderBytes) > 0 {
+	subo := []SUBO{}
+	s := SUBO{}
 
-		subo := []SUBO{}
-		s := SUBO{}
+	if err != nil {
+		return nil, errors.New("some error in getting sub orders with Order Id ")
+	}
 
-		if err != nil {
-			return nil, errors.New("some error in getting sub orders with Order Id ")
+	var subOrderIds SUB_ORDERS_LIST
+	json.Unmarshal(subOrderBytes, &subOrderIds)
+
+	for _, sub := range subOrderIds.SubOderId {
+
+		fmt.Println("Inside for loop for getting suborders. SUBORDER Id is  ", sub)
+		args[0] = sub
+
+		sbytes, err = fetchSubOrderBySubOrderId(stub, args)
+		fmt.Println("sbytes ", string(sbytes))
+
+		err = json.Unmarshal(sbytes, &s)
+
+		if err == nil {
+			fmt.Println("inside iF")
+
+			subo = append(subo, s)
 		}
-
-		var subOrderIds SUB_ORDERS_LIST
-		json.Unmarshal(subOrderBytes, &subOrderIds)
-
-		for _, sub := range subOrderIds.SubOderId {
-
-			fmt.Println("Inside for loop for getting suborders. SUBORDER Id is  ", sub)
-			args[0] = sub
-
-			sbytes, err = fetchSubOrderBySubOrderId(stub, args)
-			fmt.Println("sbytes ", string(sbytes))
-
-			err = json.Unmarshal(sbytes, &s)
-
-			if err == nil {
-				fmt.Println("inside iF")
-
-				subo = append(subo, s)
-			}
-
-		}
-
-		suboBytes, err = json.Marshal(subo)
 
 	}
+
+	suboBytes, err = json.Marshal(subo)
 
 	return suboBytes, nil
 

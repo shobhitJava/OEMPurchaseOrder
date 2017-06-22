@@ -25,20 +25,19 @@ func fetchSubOrderBySubOrderId(stub shim.ChaincodeStubInterface, args []string) 
 	}
 
 	rowString1 := fmt.Sprintf("%s", row)
-	if len(rowString1) > 0 {
 
-		fmt.Println("Suborer id  Row ", rowString1)
+	fmt.Println("Suborer id  Row ", rowString1)
 
-		var subo *SUBO
+	var subo *SUBO
 
-		subo = new(SUBO)
-		subo.convertSub(&row)
+	subo = new(SUBO)
+	subo.convertSub(&row)
 
-		jsonRows, err = json.Marshal(subo)
-		if err != nil {
-			return nil, fmt.Errorf("Error marshaling JSON: %s", err)
-		}
+	jsonRows, err = json.Marshal(subo)
+	if err != nil {
+		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
+
 	return jsonRows, nil
 
 }
@@ -60,18 +59,17 @@ func fetchOrderByOrderId(stub shim.ChaincodeStubInterface, args []string) ([]byt
 	}
 
 	rowString1 := fmt.Sprintf("%s", row)
-	if len(rowString1) > 0 {
-		fmt.Println("order id  Row ", rowString1)
 
-		var po *PO
+	fmt.Println("order id  Row ", rowString1)
 
-		po = new(PO)
-		po.convert(&row)
+	var po *PO
 
-		jsonRows, err = json.Marshal(po)
-		if err != nil {
-			return nil, fmt.Errorf("Error marshaling JSON: %s", err)
-		}
+	po = new(PO)
+	po.convert(&row)
+
+	jsonRows, err = json.Marshal(po)
+	if err != nil {
+		return nil, fmt.Errorf("Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
@@ -321,39 +319,37 @@ func fetchAllOrders(stub shim.ChaincodeStubInterface, args []string) ([]byte, er
 
 	var jsonRows []byte
 
-	if len(rowChannel) > 0 {
+	orderArray := []PO{}
 
-		orderArray := []PO{}
+	for {
+		select {
 
-		for {
-			select {
+		case row, ok := <-rowChannel:
 
-			case row, ok := <-rowChannel:
+			if !ok {
+				rowChannel = nil
+			} else {
 
-				if !ok {
-					rowChannel = nil
-				} else {
+				fmt.Println("Inside Else of for loop in query")
+				po := PO{}
 
-					fmt.Println("Inside Else of for loop in query")
-					po := PO{}
+				po.convert(&row)
 
-					po.convert(&row)
-
-					orderArray = append(orderArray, po)
-				}
-
+				orderArray = append(orderArray, po)
 			}
-			if rowChannel == nil {
-				break
-			}
+
 		}
-
-		jsonRows, err = json.Marshal(orderArray)
-
-		if err != nil {
-			return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+		if rowChannel == nil {
+			break
 		}
 	}
+
+	jsonRows, err = json.Marshal(orderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+	}
+
 	return jsonRows, nil
 
 }
@@ -364,50 +360,47 @@ func fetchAllSubOrdersAssignedToTier2(stub shim.ChaincodeStubInterface, args []s
 
 	var jsonRows []byte
 
-	if len(rowChannel) > 0 {
+	subOrderArray := []SUBO{}
 
-		subOrderArray := []SUBO{}
+	fmt.Println("args[0]  = ", args[0])
 
-		fmt.Println("args[0]  = ", args[0])
+	for {
+		select {
 
-		for {
-			select {
+		case row, ok := <-rowChannel:
 
-			case row, ok := <-rowChannel:
+			fmt.Println("OK = ", ok)
 
-				fmt.Println("OK = ", ok)
+			if !ok {
+				rowChannel = nil
+			} else {
 
-				if !ok {
-					rowChannel = nil
-				} else {
+				fmt.Println("Inside Else of for loop in query")
+				subo := SUBO{}
 
-					fmt.Println("Inside Else of for loop in query")
-					subo := SUBO{}
+				rowString1 := fmt.Sprintf("%s", row)
 
-					rowString1 := fmt.Sprintf("%s", row)
+				fmt.Println("Suborer id  Row ", rowString1)
 
-					fmt.Println("Suborer id  Row ", rowString1)
+				subo.convertSub(&row)
 
-					subo.convertSub(&row)
-
-					if subo.Supplier2_Name == args[0] {
-						subOrderArray = append(subOrderArray, subo)
-					}
+				if subo.Supplier2_Name == args[0] {
+					subOrderArray = append(subOrderArray, subo)
 				}
-
 			}
-			if rowChannel == nil {
-				break
-			}
+
 		}
-
-		jsonRows, err = json.Marshal(subOrderArray)
-
-		if err != nil {
-			return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+		if rowChannel == nil {
+			break
 		}
-
 	}
+
+	jsonRows, err = json.Marshal(subOrderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+	}
+
 	return jsonRows, nil
 
 }
@@ -418,49 +411,45 @@ func fetchAllSubOrdersByTier1(stub shim.ChaincodeStubInterface, args []string) (
 	rowChannel, err := stub.GetRows("TIER1", columns)
 	var jsonRows []byte
 
-	if len(rowChannel) > 0 {
+	subOrderArray := []SUBO{}
 
-		subOrderArray := []SUBO{}
+	fmt.Println("args[0]  = ", args[0])
 
-		fmt.Println("args[0]  = ", args[0])
+	for {
+		select {
 
-		for {
-			select {
+		case row, ok := <-rowChannel:
 
-			case row, ok := <-rowChannel:
+			fmt.Println("OK = ", ok)
 
-				fmt.Println("OK = ", ok)
+			if !ok {
+				rowChannel = nil
+			} else {
 
-				if !ok {
-					rowChannel = nil
-				} else {
+				fmt.Println("Inside Else of for loop in query")
+				subo := SUBO{}
 
-					fmt.Println("Inside Else of for loop in query")
-					subo := SUBO{}
+				rowString1 := fmt.Sprintf("%s", row)
 
-					rowString1 := fmt.Sprintf("%s", row)
+				fmt.Println("Suborer id  Row ", rowString1)
 
-					fmt.Println("Suborer id  Row ", rowString1)
+				subo.convertSub(&row)
 
-					subo.convertSub(&row)
-
-					if subo.Tier1_Name == args[0] {
-						subOrderArray = append(subOrderArray, subo)
-					}
+				if subo.Tier1_Name == args[0] {
+					subOrderArray = append(subOrderArray, subo)
 				}
-
 			}
-			if rowChannel == nil {
-				break
-			}
+
 		}
-
-		jsonRows, err = json.Marshal(subOrderArray)
-
-		if err != nil {
-			return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
+		if rowChannel == nil {
+			break
 		}
+	}
 
+	jsonRows, err = json.Marshal(subOrderArray)
+
+	if err != nil {
+		return nil, fmt.Errorf("getRowsTableFour operation failed. Error marshaling JSON: %s", err)
 	}
 
 	return jsonRows, nil
