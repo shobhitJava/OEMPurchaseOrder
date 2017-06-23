@@ -265,6 +265,9 @@ func changeSuborderStatus(stub shim.ChaincodeStubInterface, args []string) ([]by
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
 		subo.SubOrder_Status = "Dispatched"
 	}
+	if orderStatus == "Delayed" && args[1] == "Dispatched" {
+		subo.SubOrder_Status = "Dispatched"
+	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
 		subo.SubOrder_Status = "Delayed"
 		subo.Revised_Date = args[2]
@@ -361,6 +364,9 @@ func changeOrderStatus(stub shim.ChaincodeStubInterface, args []string) ([]byte,
 		po.Order_Status = "InProgress"
 	}
 	if orderStatus == "InProgress" && args[1] == "Dispatched" {
+		po.Order_Status = "Dispatched"
+	}
+	if orderStatus == "Delayed" && args[1] == "Dispatched" {
 		po.Order_Status = "Dispatched"
 	}
 	if orderStatus == "InProgress" && args[1] == "Delayed" {
@@ -469,7 +475,7 @@ func fetchCompletedSubOrders(stub shim.ChaincodeStubInterface, args []string) ([
 			fmt.Println("inside iF")
 		}
 
-		if subo.SubOrder_Status == "Completed" {
+		if subo.SubOrder_Status == "Completed" || subo.SubOrder_Status == "Dispatched" {
 
 			subOrdList = append(subOrdList, subo)
 		}
@@ -795,7 +801,7 @@ func fetchCompletedOrders(stub shim.ChaincodeStubInterface, args []string) ([]by
 			fmt.Println("inside iF")
 		}
 
-		if po.Order_Status == "Completed" {
+		if po.Order_Status == "Completed" || po.Order_Status == "Dispatched" {
 
 			poList = append(poList, po)
 		}
